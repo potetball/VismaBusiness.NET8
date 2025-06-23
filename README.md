@@ -6,7 +6,7 @@
 ```xml
 <behavior name="vbsQwipsBehavior">
     <serviceCredentials>
-    <serviceCertificate findValue="QwipsServiceSystemIntegration" x509FindType="FindBySubjectName" storeLocation="LocalMachine" storeName="My" />
+    <serviceCertificate findValue="integration.qwips.no" x509FindType="FindBySubjectName" storeLocation="LocalMachine" storeName="My" />
     <userNameAuthentication userNamePasswordValidationMode="Custom" customUserNamePasswordValidatorType="Visma.BusinessServices.AuthenticationManager, Visma.BusinessServices" />
     <windowsAuthentication allowAnonymousLogons="false" />
     </serviceCredentials>
@@ -20,7 +20,7 @@
 ```xml
 <binding name="qwipsAuthenticationBinding" maxReceivedMessageSize="2147483647" closeTimeout="23:59:59" openTimeout="23:59:59" receiveTimeout="23:59:59" sendTimeout="23:59:59">
     <readerQuotas maxDepth="2147483647" maxStringContentLength="2147483647" maxArrayLength="2147483647" maxBytesPerRead="2147483647" maxNameTableCharCount="2147483647" />
-    <security mode="Transport">
+    <security mode="TransportWithMessageCredential">
     <message clientCredentialType="UserName" />
     </security>
 </binding>
@@ -42,13 +42,13 @@
       -->
       <service name="Visma.BusinessServices.Generic.GenericService" behaviorConfiguration="vbsQwipsBehavior">
         <endpoint name="CustomAuthenticationEndPoint" address="" binding="wsHttpBinding" bindingConfiguration="customAuthenticationBinding" contract="Visma.BusinessServices.Generic.IGenericService" />
-        <endpoint name="QwipsAuthenticationEndPoint" address="https://localhost:20443/GenericService" binding="wsHttpBinding" bindingConfiguration="qwipsAuthenticationBinding" contract="Visma.BusinessServices.Generic.IGenericService" />
+        <endpoint name="QwipsAuthenticationEndPoint" address="https://integration.qwips.no:20443/GenericService" binding="wsHttpBinding" bindingConfiguration="qwipsAuthenticationBinding" contract="Visma.BusinessServices.Generic.IGenericService" />
         <endpoint address="mex" binding="mexHttpsBinding" contract="IMetadataExchange" />
         <endpoint address="mex" binding="mexHttpBinding" contract="IMetadataExchange" />
         <host>
           <baseAddresses>
             <add baseAddress="http://localhost:2001/GenericService" />
-            <add baseAddress="https://localhost:20443/GenericService" />
+            <add baseAddress="https://integration.qwips.no:20443/GenericService" />
           </baseAddresses>
         </host>
       </service>
@@ -59,9 +59,9 @@
 # 1. Start powershell and paste in 
 *(before you execute, make sure you have a C:\Temp folder to store the public certificate)*
 ```pwsh
- $certname = "qwips.integration.local"
- $cert = New-SelfSignedCertificate -Subject "CN=$certname" -CertStoreLocation "Cert:\LocalMachine\My" -KeyExportPolicy Exportable -KeySpec Signature -KeyLength 2048 -KeyAlgorithm RSA -HashAlgorithm SHA256 -NotAfter (Get-Date).AddYears(25) -DnsName "integration.qwips.no" -FriendlyName "QwipsServiceSolutions" -Type SSLServerAuthentication
- Export-Certificate -Cert $cert -FilePath "C:\Temp\$certname.cer"
+ $certhost = "integration.qwips.no"
+ $cert = New-SelfSignedCertificate -Subject "CN=$certhost" -CertStoreLocation "Cert:\LocalMachine\My" -KeyExportPolicy Exportable -KeySpec Signature -KeyLength 2048 -KeyAlgorithm RSA -HashAlgorithm SHA256 -NotAfter (Get-Date).AddYears(25) -DnsName $certhost -FriendlyName "QwipsServiceSolutions" -Type SSLServerAuthentication
+ Export-Certificate -Cert $cert -FilePath "C:\Temp\$certhost.cer"
 ```
 
 ## 2. Paste in powershell to get certificate thumbprint
@@ -73,13 +73,15 @@
 *(Lookup httpcfg.exe for older windows ssl over https configuration tool)*
 
 ## 3. Allow port for HTTPS:
-*(Replace `<thumbprint>` with your newly created certificate thumbprint)*
-
-*(Replace `<username>` with the windows service running Visma BusinessHost service example: mycomputer\qwipsuser)*
+- *appId is just a random GUID for reference*
+- *Replace `<thumbprint>` with your newly created certificate thumbprint*
+- *Replace `<username>` with the windows service running Visma BusinessHost service example: mycomputer\qwipsuser*
 ```pwsh
-netsh http add urlacl url=https://+:20443/GenericService user=<username>
+netsh http add urlacl url=https://integration.qwips.no:20443/GenericService user=<username>
 netsh http add sslcert ipport=0.0.0.0:20443 appid='{34f28da5-4e24-4654-9f1d-a84e71846d64}' certhash=<thumbprint>
  ```
+
+## 4. Start/Restart Visma BusinessHost Service
 
 ## Done. You have now configured the server.
 
@@ -149,4 +151,8 @@ WSHttpBinding binding = new WSHttpBinding
 
 # UNINSTALLATION
 ##  To remove the SSL binding
-on server: netsh http delete sslcert ipport=0.0.0.0:20443
+on server: 
+```
+netsh http delete sslcert ipport=0.0.0.0:20443
+netsh http delete urlacl url=https://integration.qwips.no:20443/GenericService
+```
