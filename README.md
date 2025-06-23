@@ -77,8 +77,9 @@ How to get visma business GenericServiceClient to work on .NET8
 
 ## 3. Allow port for HTTPS:
 *(Replace `<thumbprint>` with your newly created certificate thumbprint)*
+*(Replace `<username>` with the windows service running Visma BusinessHost service)*
 ```pwsh
-netsh http add urlacl url=https://+:20443/GenericService user=HAL\Qwips
+netsh http add urlacl url=https://+:20443/GenericService user=<username>
 netsh http add sslcert ipport=0.0.0.0:20443 appid='{34f28da5-4e24-4654-9f1d-a84e71846d64}' certhash=<thumbprint>
  ```
 
