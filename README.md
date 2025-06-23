@@ -140,7 +140,7 @@ WSHttpBinding binding = new WSHttpBinding
 - Create endpoint
 ```C#
     EndpointAddress endpointAddress = new EndpointAddress(
-        new Uri("https://integration.qwips.no/GenericService"),
+        new Uri("https://integration.qwips.no:20443/GenericService"),
         new DnsEndpointIdentity("integration.qwips.no")
     );
 ```
