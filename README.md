@@ -1,6 +1,3 @@
-# VismaBusiness.NET8
-How to get visma business GenericServiceClient to work on .NET8
-
 # Visma Business SSL Configuration
 
 ## Edit as administrator Visma.BusinessHost Service file
@@ -94,8 +91,10 @@ netsh http add sslcert ipport=0.0.0.0:20443 appid='{34f28da5-4e24-4654-9f1d-a84e
 
 ## 2. Edit hosts file
 *(located in 'C:\windows\system32\drivers\etc\hosts')*
- - add new line/record:
-    <ip-address-to-visma-business> intgration.qwips.no
+ - add new line/record into host file:
+```
+    <ip-address-to-visma-business> integration.qwips.no
+```
  - open a web browser and browse: 
     https://integration.qwips.no:20443/GenericService
 
